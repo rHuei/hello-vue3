@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: hellovue 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hellovue
+  template:
+    metadata:
+      labels:
+        app: hellovue 
+    spec:
+      containers:
+        - name: hellovue 
+          image: k8sexampleregistry.azurecr.io/hellovue
+          ports:
+          - containerPort: 8080
