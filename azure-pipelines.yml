@@ -35,7 +35,7 @@ stages:
     - task: Docker@2
       displayName: Build image
       inputs:
-        containerRegistry: $(containerRegistry)
+        containerRegistry: 'K8SExampleRegistry'
         repository: '$(imageRepository)'
         command: 'build'
         Dockerfile: '**/Dockerfile'
@@ -66,7 +66,7 @@ stages:
     - task: Docker@2
       displayName: Push image
       inputs:
-        containerRegistry: $(containerRegistry)
+        containerRegistry: 'K8SExampleRegistry'
         repository: '$(imageRepository)'
         command: 'push'
         tags: '$(tag)'
