@@ -54,8 +54,8 @@ stages:
       displayName: "Run trivy scan"
       inputs:
         script: |
-          trivy image --exit-code 0 --severity LOW,MEDIUM $(imageName):$(tag)
-          trivy image --exit-code 1 --severity HIGH,CRITICAL $(imageName):$(tag)
+          trivy image --exit-code 0 --severity LOW,MEDIUM $(imageName)
+          trivy image --exit-code 1 --severity HIGH,CRITICAL $(imageName)
 
     - upload: manifests
       artifact: manifests
