@@ -50,6 +50,13 @@ stages:
         echo $(imageName)
       displayName: 'Download and install Trivy'
 
+    - task: CmdLine@2
+      displayName: "Run trivy scan"
+      inputs:
+        script: |
+          trivy image --exit-code 0 --severity LOW,MEDIUM $(imageName):$(tag)
+          trivy image --exit-code 1 --severity HIGH,CRITICAL $(imageName):$(tag)
+
     - upload: manifests
       artifact: manifests
 
