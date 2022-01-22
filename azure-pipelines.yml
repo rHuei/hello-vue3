@@ -17,6 +17,7 @@ variables:
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
   imagePullSecret: 'k8sexampleregistry5580-auth'
+  imageName: $(imageRepository):$(tag)
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
@@ -39,12 +40,14 @@ stages:
         dockerfile: $(dockerfilePath)
         tags: |
           $(tag)
+
     - script: |
         export TRIVY_VERSION=$(wget -qO - "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
         echo "Trivy version: $TRIVY_VERSION"
         wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.deb
         sudo apt install -y ./trivy_${TRIVY_VERSION}_Linux-64bit.deb
         trivy -v
+        echo $(imageName)
       displayName: 'Download and install Trivy'
 
     - upload: manifests
