@@ -44,18 +44,16 @@ stages:
     - script: |
         export TRIVY_VERSION=$(wget -qO - "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
         echo "Trivy version: $TRIVY_VERSION"
-        wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.deb
-        sudo apt install -y ./trivy_${TRIVY_VERSION}_Linux-64bit.deb
-        trivy -v
-        echo $(imageName)
+        wget --no-verbose https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz -O - | tar -zxvf -
+        ./trivy -v
       displayName: 'Download and install Trivy'
 
     - task: CmdLine@2
       displayName: "Run trivy scan"
       inputs:
         script: |
-          trivy image --exit-code 0 --severity LOW,MEDIUM --format template --template "@contrib/junit.tpl" -o $(System.DefaultWorkingDirectory)/junit-report-low-med.xml $(imageName)
-          trivy image --exit-code 1 --severity HIGH,CRITICAL --format template --template "@contrib/junit.tpl" -o $(System.DefaultWorkingDirectory)/junit-report-high-critical.xml $(imageName)
+          ./trivy image --exit-code 0 --severity LOW,MEDIUM --format template --template "@contrib/junit.tpl" -o $(System.DefaultWorkingDirectory)/junit-report-low-med.xml $(imageName)
+          ./trivy image --exit-code 1 --severity HIGH,CRITICAL --format template --template "@contrib/junit.tpl" -o $(System.DefaultWorkingDirectory)/junit-report-high-critical.xml $(imageName)
 
     - task: PublishTestResults@2
       inputs:
