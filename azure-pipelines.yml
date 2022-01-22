@@ -54,8 +54,16 @@ stages:
       displayName: "Run trivy scan"
       inputs:
         script: |
-          trivy image --exit-code 0 --severity LOW,MEDIUM $(imageName)
-          trivy image --exit-code 1 --severity HIGH,CRITICAL $(imageName)
+          trivy image --exit-code 0 --severity LOW,MEDIUM --format template --template "@contrib/junit.tpl" -o junit-report-low-med.xml $(imageName)
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --format template --template "@contrib/junit.tpl" -o junit-report-high-critical.xml $(imageName)
+
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/junit-report-*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Trivy Scan Vulnerabilities'
+      condition: always()
 
     - upload: manifests
       artifact: manifests
