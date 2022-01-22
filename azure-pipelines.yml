@@ -17,7 +17,7 @@ variables:
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
   imagePullSecret: 'k8sexampleregistry5580-auth'
-  imageName: $(imageRepository):$(tag)
+  imageName: $(containerRegistry)/$(imageRepository):$(tag)
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
@@ -35,11 +35,11 @@ stages:
     - task: Docker@2
       displayName: Build image
       inputs:
-        command: build
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        tags: |
-          $(tag)
+        containerRegistry: $(containerRegistry)
+        repository: '$(imageRepository)'
+        command: 'build'
+        Dockerfile: '**/Dockerfile'
+        tags: '$(tag)'
 
     - script: |
         export TRIVY_VERSION=$(wget -qO - "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
@@ -66,7 +66,7 @@ stages:
     - task: Docker@2
       displayName: Push image
       inputs:
-        containerRegistry: 'K8SExampleRegistry'
+        containerRegistry: $(containerRegistry)
         repository: '$(imageRepository)'
         command: 'push'
         tags: '$(tag)'
