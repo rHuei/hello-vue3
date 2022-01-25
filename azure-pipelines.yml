@@ -25,14 +25,6 @@ variables:
 
 
 stages:
-- stage: SAST
-  displayName: SAST
-  jobs:
-  - job: Scan
-    displayName: Scan Code
-    steps:
-    - task: SonarQubeAnalyze@5
-    
 - stage: Build
   displayName: Build stage
   jobs:
