@@ -44,7 +44,7 @@ stages:
           # Additional properties that will be passed to the scanner, 
           # Put one key=value per line, example:
           # sonar.exclusions=**/*.bin
-          sonar.branch.name=main
+          sonar.branch.name=master
     - task: SonarQubeAnalyze@5
     - task: SonarQubePublish@5
       inputs:
