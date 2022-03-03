@@ -40,6 +40,11 @@ stages:
         configMode: 'manual'
         cliProjectKey: 'SynnexPOC_SynnexPOC'
         cliSources: '.'
+        extraProperties: |
+          # Additional properties that will be passed to the scanner, 
+          # Put one key=value per line, example:
+          # sonar.exclusions=**/*.bin
+          sonar.branch.name=main
     - task: SonarQubeAnalyze@5
     - task: SonarQubePublish@5
       inputs:
