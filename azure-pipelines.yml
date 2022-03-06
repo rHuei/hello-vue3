@@ -84,12 +84,89 @@ stages:
           ./trivy image --exit-code 0 --severity LOW,MEDIUM,HIGH --format template --template "@contrib/junit.tpl" -o $(System.DefaultWorkingDirectory)/junit-report-low-med-high.xml $(imageName)
           ./trivy image --exit-code 0 --severity CRITICAL --format template --template "@contrib/junit.tpl" -o $(System.DefaultWorkingDirectory)/junit-report-critical.xml $(imageName)
 
+    - bash: docker run -d -p 80:80 $(imageName)
+      displayName: 'Start App Container'
+
     - task: PublishTestResults@2
       inputs:
         testResultsFormat: 'JUnit'
         testResultsFiles: '**/junit-report-*.xml'
         mergeTestResults: true
         testRunTitle: 'Trivy Scan Vulnerabilities'
+      condition: always()
+
+    
+    - task: owaspzap@1
+      inputs:
+        aggressivemode: true
+        threshold: '50'
+        port: '80'
+      displayName: 'Zap Scan'
+     
+    - bash: |
+        sudo npm install -g handlebars-cmd
+     
+        cat <<EOF > owaspzap/nunit-template.hbs
+        {{#each site}}
+     
+        <test-run
+            id="2"
+            name="Owasp test"
+            start-time="{{../[@generated]}}"  >
+            <test-suite
+                id="{{@index}}"
+                type="Assembly"
+                name="{{[@name]}}"
+                result="Failed"
+                failed="{{alerts.length}}">
+                <attachments>
+                    <attachment>
+                        <filePath>owaspzap/report.html</filePath>
+                    </attachment>
+                </attachments>
+            {{#each alerts}}<test-case
+                id="{{@index}}"
+                name="{{alert}}"
+                result="Failed"
+                fullname="{{alert}}"
+                time="1">
+                    <failure>
+                        <message>
+                            <![CDATA[{{{desc}}}]]>
+                        </message>
+                        <stack-trace>
+                            <![CDATA[
+        Solution:
+        {{{solution}}}
+     
+        Reference:
+        {{{reference}}}
+     
+        instances:{{#each instances}}
+        * {{uri}}
+            - {{method}}
+            {{#if evidence}}- {{{evidence}}}{{/if}}
+                            {{/each}}]]>
+                        </stack-trace>
+                    </failure>
+            </test-case>
+            {{/each}}
+            </test-suite>
+        </test-run>
+        {{/each}}
+        EOF
+      displayName: 'owasp nunit template'
+      condition: always() 
+
+    - bash: ' handlebars owaspzap/report.json < owaspzap/nunit-template.hbs > owaspzap/test-results.xml'
+      displayName: 'generate nunit type file'
+      condition: always()
+
+    - task: PublishTestResults@2
+      displayName: 'Publish Test Results **/TEST-*.xml'
+      inputs:
+        testResultsFormat: NUnit
+        testResultsFiles: 'owaspzap/test-results.xml'
       condition: always()
 
     - task: Docker@2
@@ -103,36 +180,36 @@ stages:
     - upload: manifests
       artifact: manifests
 
-# - stage: Deploy
-#   displayName: Deploy stage
-#   dependsOn: Build
-# 
-#   jobs:
-#   - deployment: Deploy
-#     displayName: Deploy
-#     pool:
-#       vmImage: $(vmImageName)
-#     environment: 'rHueihellovue3.default'
-#     strategy:
-#       runOnce:
-#         deploy:
-#           steps:
-#           - task: KubernetesManifest@0
-#             displayName: Create imagePullSecret
-#             inputs:
-#               action: createSecret
-#               secretName: $(imagePullSecret)
-#               dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
-# 
-#           - task: KubernetesManifest@0
-#             displayName: Deploy to Kubernetes cluster
-#             inputs:
-#               action: deploy
-#               manifests: |
-#                 $(Pipeline.Workspace)/manifests/deployment.yml
-#                 $(Pipeline.Workspace)/manifests/service.yml
-#               imagePullSecrets: |
-#                 $(imagePullSecret)
-#               containers: |
-#                 $(containerRegistry)/$(imageRepository):$(tag)
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    pool:
+      vmImage: $(vmImageName)
+    environment: 'rHueihellovue3.default'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            displayName: Create imagePullSecret
+            inputs:
+              action: createSecret
+              secretName: $(imagePullSecret)
+              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+
+          - task: KubernetesManifest@0
+            displayName: Deploy to Kubernetes cluster
+            inputs:
+              action: deploy
+              manifests: |
+                $(Pipeline.Workspace)/manifests/deployment.yml
+                $(Pipeline.Workspace)/manifests/service.yml
+              imagePullSecrets: |
+                $(imagePullSecret)
+              containers: |
+                $(containerRegistry)/$(imageRepository):$(tag)
 
