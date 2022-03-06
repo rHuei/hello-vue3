@@ -159,7 +159,9 @@ stages:
       displayName: 'owasp nunit template'
       condition: always() 
 
-    - bash: ' handlebars owaspzap/report.json < owaspzap/nunit-template.hbs > owaspzap/test-results.xml'
+    - bash: |
+        handlebars owaspzap/report.json < owaspzap/nunit-template.hbs > owaspzap/test-results.xml
+        cat owaspzap/test-results.xml
       displayName: 'generate nunit type file'
       condition: always()
 
