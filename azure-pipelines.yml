@@ -92,7 +92,9 @@ stages:
         testRunTitle: 'Trivy Scan Vulnerabilities'
       condition: always()
 
-    - bash: docker run -d -p 8080:80 $(imageName)
+    - bash: |
+        docker run -d -p 8080:80 $(imageName)
+        curl http://127.0.0.1:80
       displayName: 'App Container'
 
     - task: owaspzap@1
