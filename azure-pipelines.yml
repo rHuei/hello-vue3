@@ -103,13 +103,11 @@ stages:
         threshold: '50'
         port: '80'
       displayName: 'Zap Scan'
-     
+
     - bash: |
         sudo npm install -g handlebars-cmd
-     
-        cat <<EOF > owaspzap/nunit-template.hbs
+        sudo cat <<EOF > owaspzap/nunit-template.hbs
         {{#each site}}
-     
         <test-run
             id="2"
             name="Owasp test"
@@ -132,23 +130,21 @@ stages:
                 fullname="{{alert}}"
                 time="1">
                     <failure>
-                        <message>
-                            <![CDATA[{{{desc}}}]]>
+                            <message>
+                             <![CDATA[{{{desc}}}]]>
                         </message>
                         <stack-trace>
                             <![CDATA[
         Solution:
         {{{solution}}}
-     
         Reference:
         {{{reference}}}
-     
         instances:{{#each instances}}
         * {{uri}}
             - {{method}}
             {{#if evidence}}- {{{evidence}}}{{/if}}
-                            {{/each}}]]>
-                        </stack-trace>
+                             {{/each}}]]>
+                         </stack-trace>
                     </failure>
             </test-case>
             {{/each}}
@@ -156,8 +152,7 @@ stages:
         </test-run>
         {{/each}}
         EOF
-      displayName: 'owasp nunit template'
-      condition: always() 
+      displayName: 'Owasp Nunit Template'
 
     - bash: |
         handlebars owaspzap/report.json < owaspzap/nunit-template.hbs > owaspzap/test-results.xml
@@ -168,7 +163,7 @@ stages:
     - task: PublishTestResults@2
       displayName: 'Publish Test Results **/TEST-*.xml'
       inputs:
-        testResultsFormat: NUnit
+        testResultsFormat: 'NUnit'
         testResultsFiles: 'owaspzap/test-results.xml'
       condition: always()
 
