@@ -84,9 +84,6 @@ stages:
           ./trivy image --exit-code 0 --severity LOW,MEDIUM,HIGH --format template --template "@contrib/junit.tpl" -o $(System.DefaultWorkingDirectory)/junit-report-low-med-high.xml $(imageName)
           ./trivy image --exit-code 0 --severity CRITICAL --format template --template "@contrib/junit.tpl" -o $(System.DefaultWorkingDirectory)/junit-report-critical.xml $(imageName)
 
-    - bash: docker run -d -p 80:80 $(imageName)
-      displayName: 'Start App Container'
-
     - task: PublishTestResults@2
       inputs:
         testResultsFormat: 'JUnit'
@@ -95,7 +92,9 @@ stages:
         testRunTitle: 'Trivy Scan Vulnerabilities'
       condition: always()
 
-    
+    - bash: docker run -d -p 8080:80 $(imageName)
+      displayName: 'App Container'
+
     - task: owaspzap@1
       inputs:
         aggressivemode: true
