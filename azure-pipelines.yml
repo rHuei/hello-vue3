@@ -159,9 +159,7 @@ stages:
       displayName: 'owasp nunit template'
       condition: always()
 
-    - bash: |
-        handlebars owaspzap/report.json < owaspzap/nunit-template.hbs > owaspzap/test-results.xml
-        cp owaspzap/test-results.xml owaspzap/report.json manifests
+    - bash: 'handlebars owaspzap/report.json < owaspzap/nunit-template.hbs > owaspzap/test-results.xml'
       displayName: 'generate nunit type file'
       condition: always()
 
@@ -170,6 +168,7 @@ stages:
       inputs:
         testResultsFormat: 'NUnit'
         testResultsFiles: 'owaspzap/test-results.xml'
+        testRunTitle: 'OWASP ZAP test Report'
       condition: always()
 
     - task: Docker@2
