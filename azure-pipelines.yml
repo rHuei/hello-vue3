@@ -93,7 +93,7 @@ stages:
       condition: always()
 
     - bash: |
-        docker run -d -p 8080:80 $(imageName)
+        docker run -d -p 80:8080 $(imageName)
         docker ps
       displayName: 'App Container'
 
