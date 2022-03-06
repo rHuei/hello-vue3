@@ -167,7 +167,8 @@ stages:
       displayName: 'Publish Test Results **/TEST-*.xml'
       inputs:
         testResultsFormat: 'NUnit'
-        testResultsFiles: 'owaspzap/test-results.xml'
+        testResultsFiles: 'test-results.xml'
+        searchFolder: '$(System.DefaultWorkingDirectory)/owaspzap'
         testRunTitle: 'OWASP ZAP test Report'
       condition: always()
 
